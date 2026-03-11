@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Stock Price Prediction</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    </head>
+    <body>
+        <main class="page">
+            <div class="center-card">
+            <section class="app-card">
+                <header class="app-header">
+                    <p class="kicker">Stock Price Prediction</p>
+                    <h1>Upload your stock data file</h1>
+                    <p class="lead">
+                        Use a CSV or Excel file to generate a simple prediction chart.
+                    </p>
+                </header>
+
+                <form class="upload-form" method="POST" enctype="multipart/form-data">
+                    <div class="field-group">
+                        <label class="field-label" for="file">Data file</label>
+                        <label class="file-picker" for="file">
+                            <input id="file" class="file-input" type="file" name="file" accept=".csv,.xls,.xlsx" required>
+                            <span class="file-button">Choose file</span>
+                            <span class="file-name" id="file-name">{{ uploaded_name or "No file selected" }}</span>
+                            
+                        </label>
+                        <p class="field-note">Supported formats: CSV, XLS, XLSX</p>
+                        
+                    </div>
+                    <div>
+                        <button id="submit-button" class="primary-button" type="submit">Generate Prediction</button>
+                    </div>
+                </form>
+            </section>
+                </div>
+        </main>
+
+        <script>
+            const fileInput = document.getElementById("file");
+            const fileName = document.getElementById("file-name");
+            const submitButton = document.getElementById("submit-button");
+            const uploadForm = document.querySelector(".upload-form");
+
+            if (fileInput && fileName) {
+                fileInput.addEventListener("change", () => {
+                    fileName.textContent = fileInput.files.length ? fileInput.files[0].name : "No file selected";
+                });
+            }
+
+            if (uploadForm && submitButton) {
+                uploadForm.addEventListener("submit", () => {
+                    submitButton.disabled = true;
+                    submitButton.textContent = "Generating...";
+                });
+            }
+        </script>
+    </body>
+</html>

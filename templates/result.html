@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Prediction Result</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    </head>
+    <body>
+        <main class="page">
+            <section class="app-card result-card">
+                <div class="result-topbar">
+                    <div>
+                        <p class="kicker">Prediction Result</p>
+                        <h1>Predicted graph for {{ uploaded_name }}</h1>
+                        <p class="lead">Actual closing prices compared with the linear regression prediction line.</p>
+                    </div>
+                    <a class="secondary-button" href="{{ url_for('index') }}">Upload Another File</a>
+                </div>
+
+                {% if summary %}
+                <section class="summary-grid">
+                    <article class="summary-card">
+                        <span>Rows</span>
+                        <strong>{{ summary.points }}</strong>
+                    </article>
+                    <article class="summary-card">
+                        <span>Date range</span>
+                        <strong>{{ summary.start_date }} to {{ summary.end_date }}</strong>
+                    </article>
+                    <article class="summary-card">
+                        <span>Latest close</span>
+                        <strong>{{ summary.latest_close }}</strong>
+                    </article>
+                </section>
+                {% endif %}
+
+                <section class="chart-section">
+                    <div class="chart-box">
+                        <img src="{{ graph }}" alt="Prediction graph for {{ uploaded_name }}">
+                    </div>
+                </section>
+            </section>
+        </main>
+    </body>
+</html>
