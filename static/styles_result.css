@@ -1,0 +1,79 @@
+:root {
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --border: #d9e0e7;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --primary: #2563eb;
+    --shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+    --success-bg: #ecfdf3;
+    --success-text: #166534;
+    --error-bg: #fef2f2;
+    --error-text: #b91c1c;
+    --neutral-bg: #f8fafc;
+}
+
+* { box-sizing: border-box; }
+
+body { margin: 0; min-height: 100vh; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); }
+
+/* Make the page fit the screen horizontally so graph + details are clearly visible */
+.page {
+    width: 100%;
+    margin: 0;
+    padding: 1.5rem 1.25rem;
+    min-height: 100vh;
+    display: block;
+}
+
+.app-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 1.25rem 1.5rem;
+    width: 100%;
+    max-width: none;
+}
+
+.kicker { margin: 0 0 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.04em; }
+
+h1, h2 { margin: 0; }
+h1 { font-size: 2rem; line-height: 1.2; }
+h2 { font-size: 1.35rem; margin-bottom: 0.35rem; }
+
+.lead, .field-note { margin: 0.75rem 0 0; color: var(--muted); line-height: 1.6; }
+
+.result-card { display: block; gap: 1rem; }
+
+.result-topbar { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
+
+.secondary-button { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 12px; background: #ffffff; color: var(--text); font-weight: 600; text-decoration: none; }
+.secondary-button:hover { background: #f8fafc; }
+
+.summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin: 1rem 0 1.25rem; }
+
+.summary-card { padding: 1rem; border: 1px solid var(--border); border-radius: 12px; background: #fafbfc; }
+.summary-card span { display: block; margin-bottom: 0.4rem; font-size: 0.82rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+.summary-card strong { line-height: 1.5; }
+
+.chart-box { border: 1px solid var(--border); border-radius: 14px; background: #ffffff; padding: 1rem; overflow: hidden; }
+.chart-box img { display: block; width: 100%; height: auto; border-radius: 8px; max-height: calc(100vh - 220px); object-fit: contain; }
+
+.chart-section { display: block; }
+
+/* Two-column layout for summary (left) and chart (right) */
+.result-body { display: flex; gap: 1.5rem; align-items: flex-start; }
+.summary-column { width: 260px; min-width: 180px; align-self: flex-start; position: sticky; top: 1.75rem; }
+.summary-grid.summary-vertical { display: flex; flex-direction: column; gap: 1rem; margin: 0; }
+.chart-column { flex: 1 1 auto; }
+
+/* Ensure the chart column can scroll vertically if needed */
+.chart-column { overflow: auto; }
+
+@media (max-width: 760px) {
+    .app-card { padding: 1rem; }
+    .result-body { display: block; }
+    .summary-column { width: auto; position: static; margin-bottom: 1rem; }
+    .summary-grid.summary-vertical { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; }
+}
