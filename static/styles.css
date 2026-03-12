@@ -234,6 +234,29 @@ h2 {
     margin: 1rem 0 1.25rem;
 }
 
+/* Two-column layout for summary (left) and chart (right) */
+.result-body {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.summary-column {
+    width: 240px;
+    min-width: 180px;
+}
+
+.summary-grid.summary-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 0; /* spacing handled by result-body */
+}
+
+.chart-column {
+    flex: 1 1 auto;
+}
+
 .summary-card {
     padding: 1rem;
     border: 1px solid var(--border);
@@ -270,6 +293,24 @@ h2 {
 
 .chart-section {
     display: block;
+}
+
+/* Make summary column stack above chart on smaller screens */
+@media (max-width: 760px) {
+    .result-body {
+        display: block;
+    }
+
+    .summary-column {
+        width: auto;
+        margin-bottom: 1rem;
+    }
+
+    .summary-grid.summary-vertical {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0.75rem;
+    }
 }
 
 .empty-state {

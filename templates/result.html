@@ -19,27 +19,37 @@
                 </div>
 
                 {% if summary %}
-                <section class="summary-grid">
-                    <article class="summary-card">
-                        <span>Rows</span>
-                        <strong>{{ summary.points }}</strong>
-                    </article>
-                    <article class="summary-card">
-                        <span>Date range</span>
-                        <strong>{{ summary.start_date }} to {{ summary.end_date }}</strong>
-                    </article>
-                    <article class="summary-card">
-                        <span>Latest close</span>
-                        <strong>{{ summary.latest_close }}</strong>
-                    </article>
-                </section>
-                {% endif %}
+                <section class="result-body">
+                    <aside class="summary-column">
+                        <section class="summary-grid summary-vertical">
+                            <article class="summary-card">
+                                <span>Rows</span>
+                                <strong>{{ summary.points }}</strong>
+                            </article>
+                            <article class="summary-card">
+                                <span>Date range</span>
+                                <strong>{{ summary.start_date }} to {{ summary.end_date }}</strong>
+                            </article>
+                            <article class="summary-card">
+                                <span>Latest close</span>
+                                <strong>{{ summary.latest_close }}</strong>
+                            </article>
+                        </section>
+                    </aside>
 
+                    <section class="chart-column">
+                        <div class="chart-box">
+                            <img src="{{ graph }}" alt="Prediction graph for {{ uploaded_name }}">
+                        </div>
+                    </section>
+                </section>
+                {% else %}
                 <section class="chart-section">
                     <div class="chart-box">
                         <img src="{{ graph }}" alt="Prediction graph for {{ uploaded_name }}">
                     </div>
                 </section>
+                {% endif %}
             </section>
         </main>
     </body>
