@@ -7,7 +7,6 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.svm import SVR
 from xgboost import XGBRegressor
 def run_model(filepath, model_type="Linear Regression"):
     extension = os.path.splitext(filepath)[1].lower()
@@ -39,8 +38,6 @@ def run_model(filepath, model_type="Linear Regression"):
         model = DecisionTreeRegressor(random_state=42)
     elif model_type == "Random Forest":
         model = RandomForestRegressor(n_estimators=100, random_state=42)
-    elif model_type == "Support Vector Regression (SVR)":
-        model = SVR(kernel='rbf')
     elif model_type == "XGBoost":
         model = XGBRegressor(random_state=42)
     else:
@@ -74,7 +71,6 @@ def run_model(filepath, model_type="Linear Regression"):
         zorder=4,
     )
 
-    title_model_str = model_type if model_type == "Support Vector Regression (SVR)" else getattr(model, "__class__").__name__ if model_type != "Linear Regression" else "Linear Regression"
     
     ax.set_title(f"Closing Price Trend and {model_type} Forecast", fontsize=15, pad=14, color="#e0e0e0")
     ax.set_xlabel("Date", fontsize=11, color="#a0a0a0")

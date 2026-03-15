@@ -32,14 +32,29 @@
                         </div>
 
                         <div class="field-group">
-                            <label class="field-label" for="model_type">Machine Learning Model</label>
-                            <select id="model_type" name="model_type" class="form-select" style="width: 100%; height: 56px; padding: 0 0.9rem; border: 1px solid #333333; border-radius: 12px; font-family: inherit; font-size: 0.95rem; color: #e0e0e0; background-color: #1e1e1e; cursor: pointer; outline: none; transition: border-color 0.2s;">
-                                <option value="Linear Regression">Linear Regression</option>
-                                <option value="Decision Tree">Decision Tree Regressor</option>
-                                <option value="Random Forest">Random Forest Regressor</option>
-                                <option value="Support Vector Regression (SVR)">Support Vector Regression (SVR)</option>
-                                <option value="XGBoost">XGBoost Regressor</option>
-                            </select>
+                            <label class="field-label">Machine Learning Model</label>
+                            <!-- Hidden input carries the value on form submit -->
+                            <input type="hidden" id="model_type" name="model_type" value="Linear Regression">
+                            <div class="custom-select" id="customSelect">
+                                <button type="button" class="custom-select__trigger" aria-haspopup="listbox" aria-expanded="false">
+                                    <span class="custom-select__value">Linear Regression</span>
+                                    <svg class="custom-select__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                                </button>
+                                <ul class="custom-select__dropdown" role="listbox">
+                                    <li class="custom-select__option selected" role="option" data-value="Linear Regression">
+                                        <span class="option-icon">📈</span> Linear Regression
+                                    </li>
+                                    <li class="custom-select__option" role="option" data-value="Decision Tree">
+                                        <span class="option-icon">🌿</span> Decision Tree Regressor
+                                    </li>
+                                    <li class="custom-select__option" role="option" data-value="Random Forest">
+                                        <span class="option-icon">🌲</span> Random Forest Regressor
+                                    </li>
+                                    <li class="custom-select__option" role="option" data-value="XGBoost">
+                                        <span class="option-icon">⚡</span> XGBoost Regressor
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                     <div style="width: 100%; display: flex; justify-content: center;">
@@ -51,6 +66,7 @@
         </main>
 
         <script>
+            // File picker
             const fileInput = document.getElementById("file");
             const fileName = document.getElementById("file-name");
             const submitButton = document.getElementById("submit-button");
@@ -68,6 +84,38 @@
                     submitButton.textContent = "Generating...";
                 });
             }
+
+            // Custom select
+            const cs = document.getElementById("customSelect");
+            const trigger = cs.querySelector(".custom-select__trigger");
+            const dropdown = cs.querySelector(".custom-select__dropdown");
+            const valueLabel = cs.querySelector(".custom-select__value");
+            const hiddenInput = document.getElementById("model_type");
+            const options = cs.querySelectorAll(".custom-select__option");
+
+            trigger.addEventListener("click", () => {
+                const open = cs.classList.toggle("open");
+                trigger.setAttribute("aria-expanded", open);
+            });
+
+            options.forEach(opt => {
+                opt.addEventListener("click", () => {
+                    options.forEach(o => o.classList.remove("selected"));
+                    opt.classList.add("selected");
+                    valueLabel.textContent = opt.textContent.trim();
+                    hiddenInput.value = opt.dataset.value;
+                    cs.classList.remove("open");
+                    trigger.setAttribute("aria-expanded", "false");
+                });
+            });
+
+            // Close on outside click
+            document.addEventListener("click", e => {
+                if (!cs.contains(e.target)) {
+                    cs.classList.remove("open");
+                    trigger.setAttribute("aria-expanded", "false");
+                }
+            });
         </script>
     </body>
 </html>
