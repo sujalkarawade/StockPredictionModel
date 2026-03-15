@@ -1,16 +1,16 @@
 :root {
-    --bg: #f4f6f8;
-    --card: #ffffff;
-    --border: #d9e0e7;
-    --text: #1f2937;
-    --muted: #6b7280;
-    --primary: #2563eb;
-    --shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+    --bg: #121212;
+    --card: #1e1e1e;
+    --border: #333333;
+    --text: #e0e0e0;
+    --muted: #a0a0a0;
+    --primary: #3b82f6;
+    --shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
     --success-bg: #ecfdf3;
     --success-text: #166534;
     --error-bg: #fef2f2;
     --error-text: #b91c1c;
-    --neutral-bg: #f8fafc;
+    --neutral-bg: #2a2a2a;
 }
 
 * { box-sizing: border-box; }
@@ -48,16 +48,16 @@ h2 { font-size: 1.35rem; margin-bottom: 0.35rem; }
 
 .result-topbar { display: flex; justify-content: space-between; gap: 1rem; align-items: start; margin-bottom: 1.5rem; }
 
-.secondary-button { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 12px; background: #ffffff; color: var(--text); font-weight: 600; text-decoration: none; }
-.secondary-button:hover { background: #f8fafc; }
+.secondary-button { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); color: var(--text); font-weight: 600; text-decoration: none; transition: background 0.2s; }
+.secondary-button:hover { background: #2a2a2a; }
 
 .summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin: 1rem 0 1.25rem; }
 
-.summary-card { padding: 1rem; border: 1px solid var(--border); border-radius: 12px; background: #fafbfc; }
+.summary-card { padding: 1rem; border: 1px solid var(--border); border-radius: 12px; background: #2a2a2a; }
 .summary-card span { display: block; margin-bottom: 0.4rem; font-size: 0.82rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
 .summary-card strong { line-height: 1.5; }
 
-.chart-box { border: 1px solid var(--border); border-radius: 14px; background: #ffffff; padding: 1rem; overflow: hidden; }
+.chart-box { border: 1px solid var(--border); border-radius: 14px; background: var(--card); padding: 1rem; overflow: hidden; }
 .chart-box img { display: block; width: 100%; height: auto; border-radius: 8px; max-height: calc(100vh - 220px); object-fit: contain; }
 
 .chart-section { display: block; }

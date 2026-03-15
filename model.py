@@ -5,9 +5,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.linear_model import LinearRegression
-
-
-def run_model(filepath):
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.svm import SVR
+from xgboost import XGBRegressor
+def run_model(filepath, model_type="Linear Regression"):
     extension = os.path.splitext(filepath)[1].lower()
 
     if extension == ".csv":
@@ -33,14 +35,24 @@ def run_model(filepath):
     X = data[["Days"]]
     y = data["Close"]
 
-    model = LinearRegression()
+    if model_type == "Decision Tree":
+        model = DecisionTreeRegressor(random_state=42)
+    elif model_type == "Random Forest":
+        model = RandomForestRegressor(n_estimators=100, random_state=42)
+    elif model_type == "Support Vector Regression (SVR)":
+        model = SVR(kernel='rbf')
+    elif model_type == "XGBoost":
+        model = XGBRegressor(random_state=42)
+    else:
+        model = LinearRegression()
+
     model.fit(X, y)
 
     predictions = model.predict(X)
 
-    plt.style.use("seaborn-v0_8-whitegrid")
-    fig, ax = plt.subplots(figsize=(11, 6.2), facecolor="#f4f7fb")
-    ax.set_facecolor("#ffffff")
+    plt.style.use("seaborn-v0_8-darkgrid")
+    fig, ax = plt.subplots(figsize=(11, 6.2), facecolor="#1e1e1e")
+    ax.set_facecolor("#1e1e1e")
 
     ax.scatter(
         data["Date"],
@@ -49,7 +61,7 @@ def run_model(filepath):
         color="#0f766e",
         s=48,
         alpha=0.9,
-        edgecolors="#dff7f2",
+        edgecolors="#2a2a2a",
         linewidths=0.9,
         zorder=3,
     )
@@ -58,24 +70,29 @@ def run_model(filepath):
         predictions,
         color="#f97316",
         linewidth=2.6,
-        label="Regression forecast",
+        label=f"{model_type} forecast",
         zorder=4,
     )
 
-    ax.set_title("Closing Price Trend and Linear Regression Forecast", fontsize=15, pad=14, color="#10233f")
-    ax.set_xlabel("Date", fontsize=11, color="#44556d")
-    ax.set_ylabel("Closing Price", fontsize=11, color="#44556d")
-    ax.grid(True, color="#d8e1ed", linestyle="--", linewidth=0.8, alpha=0.9)
+    title_model_str = model_type if model_type == "Support Vector Regression (SVR)" else getattr(model, "__class__").__name__ if model_type != "Linear Regression" else "Linear Regression"
+    
+    ax.set_title(f"Closing Price Trend and {model_type} Forecast", fontsize=15, pad=14, color="#e0e0e0")
+    ax.set_xlabel("Date", fontsize=11, color="#a0a0a0")
+    ax.set_ylabel("Closing Price", fontsize=11, color="#a0a0a0")
+    ax.grid(True, color="#333333", linestyle="--", linewidth=0.8, alpha=0.9)
     ax.legend(
         loc="upper left",
         frameon=True,
-        facecolor="#ffffff",
-        edgecolor="#d8e1ed",
+        facecolor="#1e1e1e",
+        edgecolor="#333333",
         fontsize=10,
+        labelcolor="#e0e0e0"
     )
 
+    ax.tick_params(colors="#a0a0a0")
+
     for spine in ax.spines.values():
-        spine.set_color("#d8e1ed")
+        spine.set_color("#333333")
 
     fig.autofmt_xdate(rotation=35)
     fig.tight_layout()

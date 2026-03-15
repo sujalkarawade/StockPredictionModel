@@ -19,18 +19,30 @@
                 </header>
 
                 <form class="upload-form" method="POST" enctype="multipart/form-data">
-                    <div class="field-group">
-                        <label class="field-label" for="file">Data file</label>
-                        <label class="file-picker" for="file">
-                            <input id="file" class="file-input" type="file" name="file" accept=".csv,.xls,.xlsx" required>
-                            <span class="file-button">Choose file</span>
-                            <span class="file-name" id="file-name">{{ uploaded_name or "No file selected" }}</span>
-                            
-                        </label>
-                        <p class="field-note">Supported formats: CSV, XLS, XLSX</p>
-                        
+                    <div class="inputs-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; width: 100%;">
+                        <div class="field-group">
+                            <label class="field-label" for="file">Data file</label>
+                            <label class="file-picker" for="file">
+                                <input id="file" class="file-input" type="file" name="file" accept=".csv,.xls,.xlsx" required>
+                                <span class="file-button">Choose file</span>
+                                <span class="file-name" id="file-name">{{ uploaded_name or "No file selected" }}</span>
+                                
+                            </label>
+                            <p class="field-note">Supported formats: CSV, XLS, XLSX</p>
+                        </div>
+
+                        <div class="field-group">
+                            <label class="field-label" for="model_type">Machine Learning Model</label>
+                            <select id="model_type" name="model_type" class="form-select" style="width: 100%; height: 56px; padding: 0 0.9rem; border: 1px solid #333333; border-radius: 12px; font-family: inherit; font-size: 0.95rem; color: #e0e0e0; background-color: #1e1e1e; cursor: pointer; outline: none; transition: border-color 0.2s;">
+                                <option value="Linear Regression">Linear Regression</option>
+                                <option value="Decision Tree">Decision Tree Regressor</option>
+                                <option value="Random Forest">Random Forest Regressor</option>
+                                <option value="Support Vector Regression (SVR)">Support Vector Regression (SVR)</option>
+                                <option value="XGBoost">XGBoost Regressor</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
+                    <div style="width: 100%; display: flex; justify-content: center;">
                         <button id="submit-button" class="primary-button" type="submit">Generate Prediction</button>
                     </div>
                 </form>

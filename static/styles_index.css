@@ -1,12 +1,12 @@
 :root {
-    --bg: #f4f6f8;
-    --card: #ffffff;
-    --border: #d9e0e7;
-    --text: #1f2937;
-    --muted: #6b7280;
-    --primary: #2563eb;
-    --primary-hover: #1d4ed8;
-    --shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+    --bg: #121212;
+    --card: #1e1e1e;
+    --border: #333333;
+    --text: #e0e0e0;
+    --muted: #a0a0a0;
+    --primary: #3b82f6;
+    --primary-hover: #60a5fa;
+    --shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
 }
 
 * { box-sizing: border-box; }
@@ -58,7 +58,7 @@ h2 { font-size: 1.35rem; margin-bottom: 0.35rem; }
 
 .lead, .field-note { margin: 0.75rem 0 0; color: var(--muted); line-height: 1.6; }
 
-.upload-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; align-items: center; }
+.upload-form { display: flex; flex-direction: column; gap: 1rem; align-items: flex-start; }
 
 .field-group { min-width: 0; }
 
@@ -73,7 +73,7 @@ h2 { font-size: 1.35rem; margin-bottom: 0.35rem; }
     padding: 0.75rem 0.9rem;
     border: 1px solid var(--border);
     border-radius: 12px;
-    background: #ffffff;
+    background: var(--card);
     cursor: pointer;
 }
 
@@ -82,7 +82,7 @@ h2 { font-size: 1.35rem; margin-bottom: 0.35rem; }
 .file-button {
     display: inline-flex; align-items: center; justify-content: center;
     min-width: 110px; padding: 0.65rem 0.9rem; border-radius: 10px;
-    background: #eff6ff; color: var(--primary); font-weight: 600;
+    background: #2a2a2a; color: var(--primary); font-weight: 600;
 }
 
 .file-name { min-width: 0; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -98,7 +98,8 @@ h2 { font-size: 1.35rem; margin-bottom: 0.35rem; }
 
 @media (max-width: 760px) {
     .app-card { padding: 1.25rem; }
-    .upload-form { grid-template-columns: 1fr; }
+    .upload-form { gap: 1.25rem; align-items: stretch; }
+    .inputs-grid { grid-template-columns: 1fr !important; gap: 1.25rem !important; }
     .file-picker { align-items: flex-start; flex-direction: column; }
     .file-name { white-space: normal; word-break: break-word; }
     .primary-button { width: 100%; }

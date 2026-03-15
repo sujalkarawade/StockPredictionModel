@@ -31,17 +31,19 @@ def index():
             if extension not in ALLOWED_EXTENSIONS:
                 error = "Unsupported file type. Upload a .csv, .xls, or .xlsx file."
             else:
+                model_type = request.form.get("model_type", "Linear Regression")
                 filepath = os.path.join(app.config["UPLOAD_FOLDER"], uploaded_name)
                 file.save(filepath)
 
                 try:
-                    graph_path, summary = run_model(filepath)
+                    graph_path, summary = run_model(filepath, model_type)
                     graph = url_for("static", filename=os.path.basename(graph_path), v=int(time.time()))
                     return render_template(
                         "result.html",
                         graph=graph,
                         summary=summary,
                         uploaded_name=uploaded_name,
+                        model_type=model_type,
                     )
                 except ValueError as exc:
                     error = str(exc)
