@@ -3,16 +3,23 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Prediction Result</title>
+        <title>Model Comparison — {{ uploaded_name }}</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='styles_result.css') }}">
     </head>
     <body>
         <main class="page">
             <section class="app-card result-card">
+
+                <!-- topbar -->
                 <div class="result-topbar">
                     <div>
-                        <p class="kicker">Prediction Result</p>
-                        <h1>{{ model_type }} graph for {{ uploaded_name }}</h1>
+                        <p class="kicker">Multi-Model Comparison</p>
+                        <h1>{{ uploaded_name }}</h1>
+                        <p class="topbar-meta">
+                            {{ summary.points }} rows &nbsp;·&nbsp;
+                            {{ summary.start_date }} → {{ summary.end_date }} &nbsp;·&nbsp;
+                            Latest close: <strong>{{ summary.latest_close }}</strong>
+                        </p>
                     </div>
                     <div class="topbar-actions">
                         <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
@@ -25,40 +32,55 @@
                     </div>
                 </div>
 
-                {% if summary %}
-                <section class="result-body">
-                    <aside class="summary-column">
-                        <section class="summary-grid summary-vertical">
-                            <article class="summary-card">
-                                <span>Rows</span>
-                                <strong>{{ summary.points }}</strong>
-                            </article>
-                            <article class="summary-card">
-                                <span>Date range</span>
-                                <strong>{{ summary.start_date }} to {{ summary.end_date }}</strong>
-                            </article>
-                            <article class="summary-card">
-                                <span>Latest close</span>
-                                <strong>{{ summary.latest_close }}</strong>
-                            </article>
-                        </section>
-                    </aside>
+                <!-- metrics table -->
+                <div class="compare-metrics">
+                    {% set model_colors = {
+                        "Linear Regression": "#3b82f6",
+                        "Decision Tree":     "#f97316",
+                        "Random Forest":     "#22c55e",
+                        "XGBoost":           "#a855f7"
+                    } %}
+                    {% set best_r2   = results.values() | map(attribute='r2')   | max %}
+                    {% set best_mae  = results.values() | map(attribute='mae')  | min %}
+                    {% set best_rmse = results.values() | map(attribute='rmse') | min %}
 
-                    <section class="chart-column">
-                        <div class="chart-box">
-                            <img src="{{ graph }}" alt="Prediction graph for {{ uploaded_name }}">
+                    {% for name, m in results.items() %}
+                    <div class="metric-card" style="--accent: {{ model_colors[name] }}">
+                        <div class="metric-card__header">
+                            <span class="metric-dot" style="background: {{ model_colors[name] }}"></span>
+                            <span class="metric-name">{{ name }}</span>
                         </div>
-                    </section>
-                </section>
-                {% else %}
-                <section class="chart-section">
-                    <div class="chart-box">
-                        <img src="{{ graph }}" alt="Prediction graph for {{ uploaded_name }}">
+                        <div class="metric-row">
+                            <span class="metric-label">R² Score</span>
+                            <span class="metric-value {% if m.r2 == best_r2 %}metric-best{% endif %}">{{ m.r2 }}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">MAE</span>
+                            <span class="metric-value {% if m.mae == best_mae %}metric-best{% endif %}">{{ m.mae }}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">RMSE</span>
+                            <span class="metric-value {% if m.rmse == best_rmse %}metric-best{% endif %}">{{ m.rmse }}</span>
+                        </div>
                     </div>
-                </section>
-                {% endif %}
+                    {% endfor %}
+                </div>
+
+                <!-- overlay chart -->
+                <div class="compare-section-label">Forecast Overlay — All Models vs Actual</div>
+                <div class="chart-box" style="margin-bottom: 1.5rem;">
+                    <img src="{{ overlay }}" alt="Forecast overlay chart">
+                </div>
+
+                <!-- accuracy bar chart -->
+                <div class="compare-section-label">Accuracy Metrics Comparison</div>
+                <div class="chart-box">
+                    <img src="{{ accuracy }}" alt="Accuracy comparison chart">
+                </div>
+
             </section>
         </main>
+
         <script>
             const THEME_KEY = "spp-theme";
             const html = document.documentElement;

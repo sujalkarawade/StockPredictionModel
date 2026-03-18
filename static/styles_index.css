@@ -1,12 +1,32 @@
+/* ── Theme variables ───────────────────────────────────────── */
 :root {
-    --bg: #121212;
-    --card: #1e1e1e;
-    --border: #333333;
-    --text: #e0e0e0;
-    --muted: #a0a0a0;
+    --bg:      #121212;
+    --card:    #1e1e1e;
+    --card2:   #252525;
+    --border:  #333333;
+    --border2: #3a3a3a;
+    --text:    #e0e0e0;
+    --muted:   #a0a0a0;
     --primary: #3b82f6;
     --primary-hover: #60a5fa;
-    --shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    --file-btn-bg: #2a2a2a;
+    --shadow:  0 16px 40px rgba(0,0,0,0.4);
+    --dropdown-shadow: 0 20px 50px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.3);
+}
+
+[data-theme="light"] {
+    --bg:      #f0f4f8;
+    --card:    #ffffff;
+    --card2:   #f5f7fa;
+    --border:  #d1d9e0;
+    --border2: #c4cdd6;
+    --text:    #1a202c;
+    --muted:   #64748b;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --file-btn-bg: #e8edf2;
+    --shadow:  0 16px 40px rgba(0,0,0,0.1);
+    --dropdown-shadow: 0 20px 50px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08);
 }
 
 * { box-sizing: border-box; }
@@ -17,13 +37,15 @@ body {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     background: var(--bg);
     color: var(--text);
+    transition: background 0.25s, color 0.25s;
 }
 
+/* ── Layout ────────────────────────────────────────────────── */
 .page {
     width: min(980px, calc(100% - 2rem));
     margin: 0 auto;
     padding: 2rem 0 3rem;
-    min-height: calc(100vh - 2rem);
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -37,6 +59,7 @@ body {
     border-radius: 18px;
     box-shadow: var(--shadow);
     padding: 2rem;
+    transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
 }
 
 .app-header { margin-bottom: 1.5rem; }
@@ -51,17 +74,41 @@ body {
 }
 
 h1, h2 { margin: 0; }
-
 h1 { font-size: 2rem; line-height: 1.2; }
-
 h2 { font-size: 1.35rem; margin-bottom: 0.35rem; }
 
 .lead, .field-note { margin: 0.75rem 0 0; color: var(--muted); line-height: 1.6; }
 
+/* ── Theme toggle ──────────────────────────────────────────── */
+.theme-toggle-wrap {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 999;
+}
+
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.45rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: background 0.25s, border-color 0.25s, color 0.25s;
+}
+.theme-toggle:hover { border-color: var(--primary); }
+.theme-toggle svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* ── Form ──────────────────────────────────────────────────── */
 .upload-form { display: flex; flex-direction: column; gap: 1rem; align-items: flex-start; }
-
 .field-group { min-width: 0; }
-
 .field-label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
 
 .file-picker {
@@ -75,97 +122,81 @@ h2 { font-size: 1.35rem; margin-bottom: 0.35rem; }
     border-radius: 12px;
     background: var(--card);
     cursor: pointer;
+    transition: background 0.25s, border-color 0.25s;
 }
 
 .file-input { position: absolute; opacity: 0; pointer-events: none; }
 
 .file-button {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: 110px; padding: 0.65rem 0.9rem; border-radius: 10px;
-    background: #2a2a2a; color: var(--primary); font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 110px;
+    padding: 0.65rem 0.9rem;
+    border-radius: 10px;
+    background: var(--file-btn-bg);
+    color: var(--primary);
+    font-weight: 600;
+    transition: background 0.25s;
 }
 
 .file-name { min-width: 0; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* ── Buttons ───────────────────────────────────────────────── */
 .primary-button {
-    display: inline-flex; align-items: center; justify-content: center; height: 56px;
-    padding: 0 1.25rem; border: 0; border-radius: 12px; background: var(--primary);
-    color: #ffffff; font-size: 1rem; font-weight: 600; cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 56px; padding: 0 1.25rem; border: 0; border-radius: 12px;
+    background: var(--primary); color: #fff;
+    font-size: 1rem; font-weight: 600; cursor: pointer; text-decoration: none;
+    transition: background 0.2s;
 }
-
 .primary-button:hover { background: var(--primary-hover); }
 .primary-button:disabled { opacity: 0.75; cursor: wait; }
 
-@media (max-width: 760px) {
-    .app-card { padding: 1.25rem; }
-    .upload-form { gap: 1.25rem; align-items: stretch; }
-    .inputs-grid { grid-template-columns: 1fr !important; gap: 1.25rem !important; }
-    .file-picker { align-items: flex-start; flex-direction: column; }
-    .file-name { white-space: normal; word-break: break-word; }
-    .primary-button { width: 100%; }
+.compare-button {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 56px; padding: 0 1.25rem;
+    border: 1px solid var(--primary); border-radius: 12px;
+    background: transparent; color: var(--primary);
+    font-size: 1rem; font-weight: 600; cursor: pointer;
+    transition: background 0.2s, color 0.2s;
 }
+.compare-button:hover { background: var(--primary); color: #fff; }
+.compare-button:disabled { opacity: 0.75; cursor: wait; }
 
 /* ── Custom Select ─────────────────────────────────────────── */
 .custom-select {
-    position: relative;
-    width: 100%;
-    font-family: inherit;
-    font-size: 0.95rem;
-    color: var(--text);
-    user-select: none;
+    position: relative; width: 100%;
+    font-family: inherit; font-size: 0.95rem;
+    color: var(--text); user-select: none;
 }
 
 .custom-select__trigger {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    height: 65px;
-    padding: 0 1rem;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    color: var(--text);
-    font-size: 0.95rem;
-    font-family: inherit;
-    cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; height: 65px; padding: 0 1rem;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    color: var(--text); font-size: 0.95rem; font-family: inherit; cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.25s;
 }
-
 .custom-select__trigger:hover,
 .custom-select.open .custom-select__trigger {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
 }
 
 .custom-select__arrow {
-    width: 18px;
-    height: 18px;
-    color: var(--muted);
-    flex-shrink: 0;
+    width: 18px; height: 18px; color: var(--muted); flex-shrink: 0;
     transition: transform 0.25s ease;
 }
-
-.custom-select.open .custom-select__arrow {
-    transform: rotate(180deg);
-}
+.custom-select.open .custom-select__arrow { transform: rotate(180deg); }
 
 .custom-select__dropdown {
-    display: none;
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    right: 0;
-    list-style: none;
-    margin: 0;
-    padding: 6px;
-    background: #252525;
-    border: 1px solid #3a3a3a;
-    border-radius: 14px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.3);
-    z-index: 100;
-    overflow: hidden;
-    animation: dropIn 0.18s ease;
+    display: none; position: absolute;
+    top: calc(100% + 8px); left: 0; right: 0;
+    list-style: none; margin: 0; padding: 6px;
+    background: var(--card2); border: 1px solid var(--border2);
+    border-radius: 14px; box-shadow: var(--dropdown-shadow);
+    z-index: 100; overflow: hidden; animation: dropIn 0.18s ease;
 }
 
 @keyframes dropIn {
@@ -173,35 +204,23 @@ h2 { font-size: 1.35rem; margin-bottom: 0.35rem; }
     to   { opacity: 1; transform: translateY(0); }
 }
 
-.custom-select.open .custom-select__dropdown {
-    display: block;
-}
+.custom-select.open .custom-select__dropdown { display: block; }
 
 .custom-select__option {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.7rem 0.9rem;
-    border-radius: 9px;
-    cursor: pointer;
-    color: var(--muted);
-    transition: background 0.15s, color 0.15s;
-    font-size: 0.93rem;
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.7rem 0.9rem; border-radius: 9px; cursor: pointer;
+    color: var(--muted); transition: background 0.15s, color 0.15s; font-size: 0.93rem;
 }
+.custom-select__option:hover { background: rgba(59,130,246,0.12); color: var(--text); }
+.custom-select__option.selected { background: rgba(59,130,246,0.18); color: var(--primary); font-weight: 600; }
+.option-icon { font-size: 1rem; line-height: 1; flex-shrink: 0; }
 
-.custom-select__option:hover {
-    background: rgba(59, 130, 246, 0.12);
-    color: var(--text);
-}
-
-.custom-select__option.selected {
-    background: rgba(59, 130, 246, 0.18);
-    color: var(--primary);
-    font-weight: 600;
-}
-
-.option-icon {
-    font-size: 1rem;
-    line-height: 1;
-    flex-shrink: 0;
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 760px) {
+    .app-card { padding: 1.25rem; }
+    .upload-form { gap: 1.25rem; align-items: stretch; }
+    .inputs-grid { grid-template-columns: 1fr !important; gap: 1.25rem !important; }
+    .file-picker { align-items: flex-start; flex-direction: column; }
+    .file-name { white-space: normal; word-break: break-word; }
+    .primary-button, .compare-button { width: 100%; }
 }
