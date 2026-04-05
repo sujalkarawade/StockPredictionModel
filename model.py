@@ -13,7 +13,7 @@ from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from xgboost import XGBRegressor
 
 
-def _load_and_prep(filepath):
+def _load_and_prep(filepath, start_date=None, end_date=None):
     extension = os.path.splitext(filepath)[1].lower()
     data = pd.read_csv(filepath) if extension == ".csv" else pd.read_excel(filepath)
 
@@ -29,12 +29,57 @@ def _load_and_prep(filepath):
     if len(data) < 2:
         raise ValueError("At least two valid rows with Date and Close values are required.")
 
+    # Apply date range filtering if provided
+    if start_date:
+        start_date = pd.to_datetime(start_date)
+        data = data[data["Date"] >= start_date]
+    if end_date:
+        end_date = pd.to_datetime(end_date)
+        data = data[data["Date"] <= end_date]
+
+    if len(data) < 2:
+        raise ValueError("Not enough data points in the selected date range.")
+
     data["Days"] = (data["Date"] - data["Date"].min()).dt.days
+    
+    # Calculate technical indicators
+    data["MA_20"] = data["Close"].rolling(window=20).mean()
+    data["MA_50"] = data["Close"].rolling(window=50).mean()
+    data["MA_200"] = data["Close"].rolling(window=200).mean()
+    
     return data
 
 
-def run_model(filepath, model_type="Linear Regression"):
-    data = _load_and_prep(filepath)
+def _calculate_volatility_and_changes(data):
+    """Calculate percentage changes."""
+    metrics = {}
+    
+    # Daily percentage changes
+    data["Daily_Change_%"] = data["Close"].pct_change() * 100
+    metrics["avg_daily_change"] = round(data["Daily_Change_%"].mean(), 4)
+    
+    # Weekly and monthly percentage changes
+    if len(data) >= 7:
+        first_price = data["Close"].iloc[0]
+        prices_7d_ago = data["Close"].iloc[-7] if len(data) >= 7 else first_price
+        metrics["7day_change_%"] = round(((data["Close"].iloc[-1] - prices_7d_ago) / prices_7d_ago) * 100, 4)
+    else:
+        metrics["7day_change_%"] = 0.0
+    
+    if len(data) >= 30:
+        prices_30d_ago = data["Close"].iloc[-30] if len(data) >= 30 else data["Close"].iloc[0]
+        metrics["30day_change_%"] = round(((data["Close"].iloc[-1] - prices_30d_ago) / prices_30d_ago) * 100, 4)
+    else:
+        metrics["30day_change_%"] = 0.0
+    
+    overall_change = ((data["Close"].iloc[-1] - data["Close"].iloc[0]) / data["Close"].iloc[0]) * 100
+    metrics["overall_change_%"] = round(overall_change, 4)
+    
+    return metrics
+
+
+def run_model(filepath, model_type="Linear Regression", start_date=None, end_date=None):
+    data = _load_and_prep(filepath, start_date, end_date)
     X, y = data[["Days"]], data["Close"]
 
     if model_type == "Decision Tree":
@@ -50,20 +95,34 @@ def run_model(filepath, model_type="Linear Regression"):
     predictions = model.predict(X)
 
     plt.style.use("seaborn-v0_8-darkgrid")
-    fig, ax = plt.subplots(figsize=(11, 6.2), facecolor="#1e1e1e")
+    fig, ax = plt.subplots(figsize=(13, 7), facecolor="#1e1e1e")
     ax.set_facecolor("#1e1e1e")
 
+    # Plot moving averages
+    ma20_mask = data["MA_20"].notna()
+    ma50_mask = data["MA_50"].notna()
+    ma200_mask = data["MA_200"].notna()
+    
+    ax.plot(data.loc[ma20_mask, "Date"], data.loc[ma20_mask, "MA_20"], 
+            color="#60a5fa", linewidth=1.5, label="MA 20", alpha=0.8, zorder=2)
+    ax.plot(data.loc[ma50_mask, "Date"], data.loc[ma50_mask, "MA_50"], 
+            color="#fbbf24", linewidth=1.5, label="MA 50", alpha=0.8, zorder=2)
+    ax.plot(data.loc[ma200_mask, "Date"], data.loc[ma200_mask, "MA_200"], 
+            color="#f87171", linewidth=1.5, label="MA 200", alpha=0.8, zorder=2)
+
+    # Plot actual and forecast
     ax.scatter(data["Date"], data["Close"], label="Actual close",
                color="#0f766e", s=48, alpha=0.9, edgecolors="#2a2a2a", linewidths=0.9, zorder=3)
     ax.plot(data["Date"], predictions, color="#f97316", linewidth=2.6,
             label=f"{model_type} forecast", zorder=4)
 
-    ax.set_title(f"Closing Price Trend and {model_type} Forecast", fontsize=15, pad=14, color="#e0e0e0")
+    ax.set_title(f"Closing Price Trend and {model_type} Forecast (with Technical Indicators)", 
+                 fontsize=15, pad=14, color="#e0e0e0")
     ax.set_xlabel("Date", fontsize=11, color="#a0a0a0")
     ax.set_ylabel("Closing Price", fontsize=11, color="#a0a0a0")
     ax.grid(True, color="#333333", linestyle="--", linewidth=0.8, alpha=0.9)
     ax.legend(loc="upper left", frameon=True, facecolor="#1e1e1e",
-              edgecolor="#333333", fontsize=10, labelcolor="#e0e0e0")
+              edgecolor="#333333", fontsize=9, labelcolor="#e0e0e0", ncol=2)
     ax.tick_params(colors="#a0a0a0")
     for spine in ax.spines.values():
         spine.set_color("#333333")
@@ -75,11 +134,18 @@ def run_model(filepath, model_type="Linear Regression"):
     fig.savefig(graph_path, dpi=160, bbox_inches="tight")
     plt.close(fig)
 
+    # Calculate volatility and percentage changes
+    metrics = _calculate_volatility_and_changes(data)
+
     summary = {
         "points": len(data),
         "start_date": data["Date"].min().strftime("%d %b %Y"),
         "end_date": data["Date"].max().strftime("%d %b %Y"),
         "latest_close": f"{data['Close'].iloc[-1]:.2f}",
+        "avg_daily_change": metrics["avg_daily_change"],
+        "7day_change": metrics["7day_change_%"],
+        "30day_change": metrics["30day_change_%"],
+        "overall_change": metrics["overall_change_%"],
     }
     return graph_path, summary
 

@@ -68,11 +68,13 @@ def index():
                 error = "Unsupported file type. Upload a .csv, .xls, or .xlsx file."
             else:
                 model_type = request.form.get("model_type", "Linear Regression")
+                start_date = request.form.get("start_date") or None
+                end_date = request.form.get("end_date") or None
                 filepath = os.path.join(app.config["UPLOAD_FOLDER"], uploaded_name)
                 file.save(filepath)
 
                 try:
-                    graph_path, summary = run_model(filepath, model_type)
+                    graph_path, summary = run_model(filepath, model_type, start_date, end_date)
                     graph = url_for("static", filename=os.path.basename(graph_path), v=int(time.time()))
                     return render_template(
                         "result.html",

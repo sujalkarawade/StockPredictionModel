@@ -65,6 +65,20 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="date-range-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%; margin-top: 0.5rem;">
+                        <div class="field-group">
+                            <label class="field-label" for="start_date">Start Date (Optional)</label>
+                            <input type="date" id="start_date" name="start_date" class="date-input">
+                            <p class="field-note">Filter data from this date onwards</p>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label" for="end_date">End Date (Optional)</label>
+                            <input type="date" id="end_date" name="end_date" class="date-input">
+                            <p class="field-note">Filter data up to this date</p>
+                        </div>
+                    </div>
+
                     <div style="width: 100%; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
                         <button id="submit-button" class="primary-button" type="submit">Generate Prediction</button>
                         <button id="compare-button" class="compare-button" type="submit" form="compare-form">Compare All Models</button>

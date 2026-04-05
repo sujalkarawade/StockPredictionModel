@@ -39,7 +39,23 @@
                             </article>
                             <article class="summary-card">
                                 <span>Latest close</span>
-                                <strong>{{ summary.latest_close }}</strong>
+                                <strong>${{ summary.latest_close }}</strong>
+                            </article>
+                            <article class="summary-card">
+                                <span>Avg daily change</span>
+                                <strong style="color: {% if summary.avg_daily_change >= 0 %}#22c55e{% else %}#ef4444{% endif %}">{{ summary.avg_daily_change }}%</strong>
+                            </article>
+                            <article class="summary-card">
+                                <span>7-day change</span>
+                                <strong style="color: {% if summary['7day_change'] >= 0 %}#22c55e{% else %}#ef4444{% endif %}">{{ summary['7day_change'] }}%</strong>
+                            </article>
+                            <article class="summary-card">
+                                <span>30-day change</span>
+                                <strong style="color: {% if summary['30day_change'] >= 0 %}#22c55e{% else %}#ef4444{% endif %}">{{ summary['30day_change'] }}%</strong>
+                            </article>
+                            <article class="summary-card">
+                                <span>Overall change</span>
+                                <strong style="color: {% if summary.overall_change >= 0 %}#22c55e{% else %}#ef4444{% endif %}">{{ summary.overall_change }}%</strong>
                             </article>
                         </section>
                     </aside>
