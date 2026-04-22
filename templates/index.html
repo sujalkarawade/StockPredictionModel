@@ -27,39 +27,63 @@
                 </header>
 
                 <form class="upload-form" method="POST" enctype="multipart/form-data">
-                    <div class="inputs-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; width: 100%;">
+                    <div class="inputs-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; width: 100%;">
                         <div class="field-group">
                             <label class="field-label" for="file">Data file</label>
                             <label class="file-picker" for="file">
                                 <input id="file" class="file-input" type="file" name="file" accept=".csv,.xls,.xlsx" required>
                                 <span class="file-button">Choose file</span>
                                 <span class="file-name" id="file-name">{{ uploaded_name or "No file selected" }}</span>
-                                
                             </label>
                             <p class="field-note">Supported formats: CSV, XLS, XLSX</p>
                         </div>
 
                         <div class="field-group">
+                            <label class="field-label">Learning Type</label>
+                            <input type="hidden" id="ml_type" name="ml_type" value="Supervised">
+                            <div class="custom-select" id="mlTypeSelect">
+                                <button type="button" class="custom-select__trigger" aria-haspopup="listbox" aria-expanded="false">
+                                    <span class="custom-select__value">Supervised</span>
+                                    <svg class="custom-select__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                                </button>
+                                <ul class="custom-select__dropdown" role="listbox">
+                                    <li class="custom-select__option selected" role="option" data-value="Supervised">
+                                        <span class="option-icon">🎓</span> Supervised
+                                    </li>
+                                    <li class="custom-select__option" role="option" data-value="Unsupervised">
+                                        <span class="option-icon">🔍</span> Unsupervised
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="field-group">
                             <label class="field-label">Machine Learning Model</label>
-                            <!-- Hidden input carries the value on form submit -->
                             <input type="hidden" id="model_type" name="model_type" value="Linear Regression">
                             <div class="custom-select" id="customSelect">
                                 <button type="button" class="custom-select__trigger" aria-haspopup="listbox" aria-expanded="false">
                                     <span class="custom-select__value">Linear Regression</span>
                                     <svg class="custom-select__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                                 </button>
-                                <ul class="custom-select__dropdown" role="listbox">
-                                    <li class="custom-select__option selected" role="option" data-value="Linear Regression">
+                                <ul class="custom-select__dropdown" role="listbox" id="modelDropdown">
+                                    <!-- Options will be populated by JS -->
+                                    <li class="custom-select__option selected" role="option" data-value="Linear Regression" data-type="Supervised">
                                         <span class="option-icon">📈</span> Linear Regression
                                     </li>
-                                    <li class="custom-select__option" role="option" data-value="Decision Tree">
+                                    <li class="custom-select__option" role="option" data-value="Decision Tree" data-type="Supervised">
                                         <span class="option-icon">🌿</span> Decision Tree Regressor
                                     </li>
-                                    <li class="custom-select__option" role="option" data-value="Random Forest">
+                                    <li class="custom-select__option" role="option" data-value="Random Forest" data-type="Supervised">
                                         <span class="option-icon">🌲</span> Random Forest Regressor
                                     </li>
-                                    <li class="custom-select__option" role="option" data-value="XGBoost">
+                                    <li class="custom-select__option" role="option" data-value="XGBoost" data-type="Supervised">
                                         <span class="option-icon">⚡</span> XGBoost Regressor
+                                    </li>
+                                    <li class="custom-select__option" role="option" data-value="K-Means" data-type="Unsupervised" style="display: none;">
+                                        <span class="option-icon">💠</span> K-Means Clustering
+                                    </li>
+                                    <li class="custom-select__option" role="option" data-value="Isolation Forest" data-type="Unsupervised" style="display: none;">
+                                        <span class="option-icon">🚨</span> Isolation Forest
                                     </li>
                                 </ul>
                             </div>
@@ -144,36 +168,74 @@
             });
 
             // Custom select
-            const cs = document.getElementById("customSelect");
-            const trigger = cs.querySelector(".custom-select__trigger");
-            const dropdown = cs.querySelector(".custom-select__dropdown");
-            const valueLabel = cs.querySelector(".custom-select__value");
-            const hiddenInput = document.getElementById("model_type");
-            const options = cs.querySelectorAll(".custom-select__option");
+            function setupCustomSelect(selectId, hiddenInputId, onSelect) {
+                const cs = document.getElementById(selectId);
+                const trigger = cs.querySelector(".custom-select__trigger");
+                const valueLabel = cs.querySelector(".custom-select__value");
+                const hiddenInput = document.getElementById(hiddenInputId);
+                const options = cs.querySelectorAll(".custom-select__option");
 
-            trigger.addEventListener("click", () => {
-                const open = cs.classList.toggle("open");
-                trigger.setAttribute("aria-expanded", open);
-            });
-
-            options.forEach(opt => {
-                opt.addEventListener("click", () => {
-                    options.forEach(o => o.classList.remove("selected"));
-                    opt.classList.add("selected");
-                    valueLabel.textContent = opt.textContent.trim();
-                    hiddenInput.value = opt.dataset.value;
-                    cs.classList.remove("open");
-                    trigger.setAttribute("aria-expanded", "false");
+                trigger.addEventListener("click", () => {
+                    const open = cs.classList.toggle("open");
+                    trigger.setAttribute("aria-expanded", open);
                 });
-            });
 
-            // Close on outside click
-            document.addEventListener("click", e => {
-                if (!cs.contains(e.target)) {
-                    cs.classList.remove("open");
-                    trigger.setAttribute("aria-expanded", "false");
+                options.forEach(opt => {
+                    opt.addEventListener("click", () => {
+                        if (opt.style.display === "none") return;
+                        options.forEach(o => o.classList.remove("selected"));
+                        opt.classList.add("selected");
+                        valueLabel.textContent = opt.textContent.trim();
+                        hiddenInput.value = opt.dataset.value;
+                        cs.classList.remove("open");
+                        trigger.setAttribute("aria-expanded", "false");
+                        if (onSelect) onSelect(opt.dataset.value, opt);
+                    });
+                });
+
+                // Close on outside click
+                document.addEventListener("click", e => {
+                    if (!cs.contains(e.target)) {
+                        cs.classList.remove("open");
+                        trigger.setAttribute("aria-expanded", "false");
+                    }
+                });
+            }
+
+            const modelTypeInput = document.getElementById("model_type");
+            const modelTriggerValue = document.querySelector("#customSelect .custom-select__value");
+            const modelOptions = document.querySelectorAll("#customSelect .custom-select__option");
+            const compareButton = document.getElementById("compare-button");
+
+            setupCustomSelect("mlTypeSelect", "ml_type", (val) => {
+                // Filter model options
+                let firstVisible = null;
+                modelOptions.forEach(opt => {
+                    if (opt.dataset.type === val) {
+                        opt.style.display = "";
+                        if (!firstVisible) firstVisible = opt;
+                    } else {
+                        opt.style.display = "none";
+                    }
+                });
+
+                // Select the first visible option
+                if (firstVisible) {
+                    modelOptions.forEach(o => o.classList.remove("selected"));
+                    firstVisible.classList.add("selected");
+                    modelTriggerValue.textContent = firstVisible.textContent.trim();
+                    modelTypeInput.value = firstVisible.dataset.value;
+                }
+
+                // Show/hide compare button (only for supervised)
+                if (val === "Unsupervised") {
+                    compareButton.style.display = "none";
+                } else {
+                    compareButton.style.display = "";
                 }
             });
+
+            setupCustomSelect("customSelect", "model_type");
         </script>
     </body>
 </html>

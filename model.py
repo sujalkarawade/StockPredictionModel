@@ -8,7 +8,8 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, IsolationForest
+from sklearn.cluster import KMeans
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from xgboost import XGBRegressor
 
@@ -82,41 +83,70 @@ def run_model(filepath, model_type="Linear Regression", start_date=None, end_dat
     data = _load_and_prep(filepath, start_date, end_date)
     X, y = data[["Days"]], data["Close"]
 
+    is_unsupervised = model_type in ["K-Means", "Isolation Forest"]
+
     if model_type == "Decision Tree":
         model = DecisionTreeRegressor(random_state=42)
     elif model_type == "Random Forest":
         model = RandomForestRegressor(n_estimators=100, random_state=42)
     elif model_type == "XGBoost":
         model = XGBRegressor(random_state=42)
+    elif model_type == "K-Means":
+        model = KMeans(n_clusters=3, random_state=42, n_init="auto")
+    elif model_type == "Isolation Forest":
+        model = IsolationForest(contamination=0.05, random_state=42)
     else:
         model = LinearRegression()
 
-    model.fit(X, y)
-    predictions = model.predict(X)
+    if is_unsupervised:
+        # Use price for clustering/anomaly detection
+        X_unsup = data[["Close"]]
+        model.fit(X_unsup)
+        results_labels = model.predict(X_unsup)
+    else:
+        model.fit(X, y)
+        predictions = model.predict(X)
 
     plt.style.use("seaborn-v0_8-darkgrid")
     fig, ax = plt.subplots(figsize=(13, 7), facecolor="#1e1e1e")
     ax.set_facecolor("#1e1e1e")
 
-    # Plot moving averages
-    ma20_mask = data["MA_20"].notna()
-    ma50_mask = data["MA_50"].notna()
-    ma200_mask = data["MA_200"].notna()
-    
-    ax.plot(data.loc[ma20_mask, "Date"], data.loc[ma20_mask, "MA_20"], 
-            color="#60a5fa", linewidth=1.5, label="MA 20", alpha=0.8, zorder=2)
-    ax.plot(data.loc[ma50_mask, "Date"], data.loc[ma50_mask, "MA_50"], 
-            color="#fbbf24", linewidth=1.5, label="MA 50", alpha=0.8, zorder=2)
-    ax.plot(data.loc[ma200_mask, "Date"], data.loc[ma200_mask, "MA_200"], 
-            color="#f87171", linewidth=1.5, label="MA 200", alpha=0.8, zorder=2)
+    if is_unsupervised:
+        if model_type == "K-Means":
+            scatter = ax.scatter(data["Date"], data["Close"], c=results_labels, cmap="viridis", 
+                                 s=48, alpha=0.9, edgecolors="#2a2a2a", linewidths=0.9, zorder=3, label="Clusters")
+            # Add a colorbar or legend for clusters
+            legend1 = ax.legend(*scatter.legend_elements(), loc="upper left", title="Clusters", 
+                               frameon=True, facecolor="#1e1e1e", edgecolor="#333333", labelcolor="#e0e0e0")
+            ax.add_artist(legend1)
+        else: # Isolation Forest
+            # -1 for anomalies, 1 for normal
+            anomalies = results_labels == -1
+            ax.scatter(data.loc[~anomalies, "Date"], data.loc[~anomalies, "Close"], 
+                       color="#0f766e", s=48, alpha=0.9, edgecolors="#2a2a2a", linewidths=0.9, zorder=3, label="Normal")
+            ax.scatter(data.loc[anomalies, "Date"], data.loc[anomalies, "Close"], 
+                       color="#ef4444", s=60, alpha=1.0, edgecolors="white", linewidths=1.2, zorder=4, label="Anomaly")
+    else:
+        # Plot moving averages for supervised
+        ma20_mask = data["MA_20"].notna()
+        ma50_mask = data["MA_50"].notna()
+        ma200_mask = data["MA_200"].notna()
+        
+        ax.plot(data.loc[ma20_mask, "Date"], data.loc[ma20_mask, "MA_20"], 
+                color="#60a5fa", linewidth=1.5, label="MA 20", alpha=0.8, zorder=2)
+        ax.plot(data.loc[ma50_mask, "Date"], data.loc[ma50_mask, "MA_50"], 
+                color="#fbbf24", linewidth=1.5, label="MA 50", alpha=0.8, zorder=2)
+        ax.plot(data.loc[ma200_mask, "Date"], data.loc[ma200_mask, "MA_200"], 
+                color="#f87171", linewidth=1.5, label="MA 200", alpha=0.8, zorder=2)
 
-    # Plot actual and forecast
-    ax.scatter(data["Date"], data["Close"], label="Actual close",
-               color="#0f766e", s=48, alpha=0.9, edgecolors="#2a2a2a", linewidths=0.9, zorder=3)
-    ax.plot(data["Date"], predictions, color="#f97316", linewidth=2.6,
-            label=f"{model_type} forecast", zorder=4)
+        # Plot actual and forecast
+        ax.scatter(data["Date"], data["Close"], label="Actual close",
+                   color="#0f766e", s=48, alpha=0.9, edgecolors="#2a2a2a", linewidths=0.9, zorder=3)
+        ax.plot(data["Date"], predictions, color="#f97316", linewidth=2.6,
+                label=f"{model_type} forecast", zorder=4)
 
-    ax.set_title(f"Closing Price Trend and {model_type} Forecast (with Technical Indicators)", 
+    title_suffix = "Analysis" if is_unsupervised else "Forecast"
+    ax.set_title(f"Closing Price Trend and {model_type} {title_suffix}", 
                  fontsize=15, pad=14, color="#e0e0e0")
     ax.set_xlabel("Date", fontsize=11, color="#a0a0a0")
     ax.set_ylabel("Closing Price", fontsize=11, color="#a0a0a0")
