@@ -1,109 +1,64 @@
 import os
-
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LinearRegression
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor, IsolationForest
-from sklearn.cluster import KMeans
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
-from xgboost import XGBRegressor
 
-
-def _load_and_prep(filepath, start_date=None, end_date=None):
-    extension = os.path.splitext(filepath)[1].lower()
-    data = pd.read_csv(filepath) if extension == ".csv" else pd.read_excel(filepath)
-
-    required_columns = {"Date", "Close"}
-    missing = required_columns.difference(data.columns)
-    if missing:
-        raise ValueError(f"Missing required column(s): {', '.join(sorted(missing))}.")
-
-    data["Date"] = pd.to_datetime(data["Date"], errors="coerce")
-    data["Close"] = pd.to_numeric(data["Close"], errors="coerce")
-    data = data.dropna(subset=["Date", "Close"]).sort_values("Date").copy()
-
-    if len(data) < 2:
-        raise ValueError("At least two valid rows with Date and Close values are required.")
-
-    # Apply date range filtering if provided
-    if start_date:
-        start_date = pd.to_datetime(start_date)
-        data = data[data["Date"] >= start_date]
-    if end_date:
-        end_date = pd.to_datetime(end_date)
-        data = data[data["Date"] <= end_date]
-
-    if len(data) < 2:
-        raise ValueError("Not enough data points in the selected date range.")
-
-    data["Days"] = (data["Date"] - data["Date"].min()).dt.days
-    
-    # Calculate technical indicators
-    data["MA_20"] = data["Close"].rolling(window=20).mean()
-    data["MA_50"] = data["Close"].rolling(window=50).mean()
-    data["MA_200"] = data["Close"].rolling(window=200).mean()
-    
-    return data
-
-
-def _calculate_volatility_and_changes(data):
-    """Calculate percentage changes."""
-    metrics = {}
-    
-    # Daily percentage changes
-    data["Daily_Change_%"] = data["Close"].pct_change() * 100
-    metrics["avg_daily_change"] = round(data["Daily_Change_%"].mean(), 4)
-    
-    # Weekly and monthly percentage changes
-    if len(data) >= 7:
-        first_price = data["Close"].iloc[0]
-        prices_7d_ago = data["Close"].iloc[-7] if len(data) >= 7 else first_price
-        metrics["7day_change_%"] = round(((data["Close"].iloc[-1] - prices_7d_ago) / prices_7d_ago) * 100, 4)
-    else:
-        metrics["7day_change_%"] = 0.0
-    
-    if len(data) >= 30:
-        prices_30d_ago = data["Close"].iloc[-30] if len(data) >= 30 else data["Close"].iloc[0]
-        metrics["30day_change_%"] = round(((data["Close"].iloc[-1] - prices_30d_ago) / prices_30d_ago) * 100, 4)
-    else:
-        metrics["30day_change_%"] = 0.0
-    
-    overall_change = ((data["Close"].iloc[-1] - data["Close"].iloc[0]) / data["Close"].iloc[0]) * 100
-    metrics["overall_change_%"] = round(overall_change, 4)
-    
-    return metrics
-
+from ml_models import (
+    LinearRegressionModel,
+    MultipleRegressionModel,
+    LogisticRegressionModel,
+    PolynomialRegressionModel,
+    KNNRegressorModel,
+    KMeansClusteringModel,
+    IsolationForestModel,
+    _load_and_prep,
+    _calculate_volatility_and_changes
+)
 
 def run_model(filepath, model_type="Linear Regression", start_date=None, end_date=None):
     data = _load_and_prep(filepath, start_date, end_date)
-    X, y = data[["Days"]], data["Close"]
+    
+    # Feature selection logic
+    features = ["Days"]
+    if model_type == "Multiple Regression":
+        features = ["Days", "MA_20", "MA_50"]
+        data_filtered = data.dropna(subset=features)
+        if len(data_filtered) < 2:
+            raise ValueError("Not enough data points for Multiple Regression after calculating indicators.")
+        X, y = data_filtered[features], data_filtered["Close"]
+        plot_dates = data_filtered["Date"]
+    else:
+        X, y = data[features], data["Close"]
+        plot_dates = data["Date"]
 
     is_unsupervised = model_type in ["K-Means", "Isolation Forest"]
 
-    if model_type == "Decision Tree":
-        model = DecisionTreeRegressor(random_state=42)
-    elif model_type == "Random Forest":
-        model = RandomForestRegressor(n_estimators=100, random_state=42)
-    elif model_type == "XGBoost":
-        model = XGBRegressor(random_state=42)
+    if model_type == "Multiple Regression":
+        model = MultipleRegressionModel()
+    elif model_type == "Logistic Regression":
+        model = LogisticRegressionModel()
+        y_binary = (y > y.median()).astype(int)
+        model.fit(X, y_binary)
+        predictions = model.predict_proba(X)[:, 1] * (y.max() - y.min()) + y.min()
+    elif model_type == "Polynomial":
+        model = PolynomialRegressionModel(degree=2)
+    elif model_type == "KNN":
+        model = KNNRegressorModel(n_neighbors=5)
     elif model_type == "K-Means":
-        model = KMeans(n_clusters=3, random_state=42, n_init="auto")
+        model = KMeansClusteringModel(n_clusters=3)
     elif model_type == "Isolation Forest":
-        model = IsolationForest(contamination=0.05, random_state=42)
+        model = IsolationForestModel(contamination=0.05)
     else:
-        model = LinearRegression()
+        model = LinearRegressionModel()
 
     if is_unsupervised:
-        # Use price for clustering/anomaly detection
         X_unsup = data[["Close"]]
         model.fit(X_unsup)
         results_labels = model.predict(X_unsup)
-    else:
+    elif model_type != "Logistic Regression":
         model.fit(X, y)
         predictions = model.predict(X)
 
@@ -115,19 +70,17 @@ def run_model(filepath, model_type="Linear Regression", start_date=None, end_dat
         if model_type == "K-Means":
             scatter = ax.scatter(data["Date"], data["Close"], c=results_labels, cmap="viridis", 
                                  s=48, alpha=0.9, edgecolors="#2a2a2a", linewidths=0.9, zorder=3, label="Clusters")
-            # Add a colorbar or legend for clusters
             legend1 = ax.legend(*scatter.legend_elements(), loc="upper left", title="Clusters", 
                                frameon=True, facecolor="#1e1e1e", edgecolor="#333333", labelcolor="#e0e0e0")
             ax.add_artist(legend1)
         else: # Isolation Forest
-            # -1 for anomalies, 1 for normal
             anomalies = results_labels == -1
             ax.scatter(data.loc[~anomalies, "Date"], data.loc[~anomalies, "Close"], 
                        color="#0f766e", s=48, alpha=0.9, edgecolors="#2a2a2a", linewidths=0.9, zorder=3, label="Normal")
             ax.scatter(data.loc[anomalies, "Date"], data.loc[anomalies, "Close"], 
                        color="#ef4444", s=60, alpha=1.0, edgecolors="white", linewidths=1.2, zorder=4, label="Anomaly")
     else:
-        # Plot moving averages for supervised
+        # Plot moving averages
         ma20_mask = data["MA_20"].notna()
         ma50_mask = data["MA_50"].notna()
         ma200_mask = data["MA_200"].notna()
@@ -139,10 +92,9 @@ def run_model(filepath, model_type="Linear Regression", start_date=None, end_dat
         ax.plot(data.loc[ma200_mask, "Date"], data.loc[ma200_mask, "MA_200"], 
                 color="#f87171", linewidth=1.5, label="MA 200", alpha=0.8, zorder=2)
 
-        # Plot actual and forecast
         ax.scatter(data["Date"], data["Close"], label="Actual close",
                    color="#0f766e", s=48, alpha=0.9, edgecolors="#2a2a2a", linewidths=0.9, zorder=3)
-        ax.plot(data["Date"], predictions, color="#f97316", linewidth=2.6,
+        ax.plot(plot_dates, predictions, color="#f97316", linewidth=2.6,
                 label=f"{model_type} forecast", zorder=4)
 
     title_suffix = "Analysis" if is_unsupervised else "Forecast"
@@ -164,7 +116,6 @@ def run_model(filepath, model_type="Linear Regression", start_date=None, end_dat
     fig.savefig(graph_path, dpi=160, bbox_inches="tight")
     plt.close(fig)
 
-    # Calculate volatility and percentage changes
     metrics = _calculate_volatility_and_changes(data)
 
     summary = {
@@ -179,38 +130,49 @@ def run_model(filepath, model_type="Linear Regression", start_date=None, end_dat
     }
     return graph_path, summary
 
-
 def run_all_models(filepath):
-    """Train all 4 models, return metrics + overlay chart + accuracy bar chart."""
     data = _load_and_prep(filepath)
     X, y = data[["Days"]], data["Close"]
 
     models = {
-        "Linear Regression": LinearRegression(),
-        "Decision Tree":     DecisionTreeRegressor(random_state=42),
-        "Random Forest":     RandomForestRegressor(n_estimators=100, random_state=42),
-        "XGBoost":           XGBRegressor(random_state=42),
+        "Linear Regression": LinearRegressionModel(),
+        "Multiple Regression": MultipleRegressionModel(),
+        "Polynomial": PolynomialRegressionModel(degree=2),
+        "KNN": KNNRegressorModel(n_neighbors=5),
     }
     colors = {
         "Linear Regression": "#3b82f6",
-        "Decision Tree":     "#f97316",
-        "Random Forest":     "#22c55e",
-        "XGBoost":           "#a855f7",
+        "Multiple Regression": "#f97316",
+        "Polynomial": "#22c55e",
+        "KNN": "#a855f7",
     }
 
     results = {}
     predictions_map = {}
 
     for name, m in models.items():
-        m.fit(X, y)
-        preds = m.predict(X)
-        predictions_map[name] = preds
-        r2  = r2_score(y, preds)
-        mae = mean_absolute_error(y, preds)
-        rmse = np.sqrt(mean_squared_error(y, preds))
+        if name == "Multiple Regression":
+            features = ["Days", "MA_20", "MA_50"]
+            data_m = data.dropna(subset=features)
+            X_m, y_m = data_m[features], data_m["Close"]
+            m.fit(X_m, y_m)
+            preds = m.predict(X_m)
+            full_preds = np.full(len(data), np.nan)
+            full_preds[data.index.get_indexer(data_m.index)] = preds
+            predictions_map[name] = full_preds
+            r2 = r2_score(y_m, preds)
+            mae = mean_absolute_error(y_m, preds)
+            rmse = np.sqrt(mean_squared_error(y_m, preds))
+        else:
+            m.fit(X, y)
+            preds = m.predict(X)
+            predictions_map[name] = preds
+            r2 = r2_score(y, preds)
+            mae = mean_absolute_error(y, preds)
+            rmse = np.sqrt(mean_squared_error(y, preds))
+            
         results[name] = {"r2": round(r2, 4), "mae": round(mae, 4), "rmse": round(rmse, 4)}
 
-    # ── Chart 1: overlay of all forecasts ──────────────────────
     plt.style.use("seaborn-v0_8-darkgrid")
     fig1, ax1 = plt.subplots(figsize=(13, 6.5), facecolor="#1e1e1e")
     ax1.set_facecolor("#1e1e1e")
@@ -218,7 +180,8 @@ def run_all_models(filepath):
     ax1.scatter(data["Date"], data["Close"], label="Actual close",
                 color="#0f766e", s=28, alpha=0.7, edgecolors="#2a2a2a", linewidths=0.6, zorder=3)
     for name, preds in predictions_map.items():
-        ax1.plot(data["Date"], preds, color=colors[name], linewidth=2.2, label=name, zorder=4)
+        mask = ~np.isnan(preds)
+        ax1.plot(data["Date"][mask], preds[mask], color=colors[name], linewidth=2.2, label=name, zorder=4)
 
     ax1.set_title("All Models — Forecast Overlay", fontsize=15, pad=14, color="#e0e0e0")
     ax1.set_xlabel("Date", fontsize=11, color="#a0a0a0")
@@ -235,7 +198,6 @@ def run_all_models(filepath):
     fig1.savefig(overlay_path, dpi=160, bbox_inches="tight")
     plt.close(fig1)
 
-    # ── Chart 2: accuracy bar chart (R², MAE, RMSE) ────────────
     names = list(results.keys())
     r2_vals   = [results[n]["r2"]   for n in names]
     mae_vals  = [results[n]["mae"]  for n in names]
@@ -264,7 +226,6 @@ def run_all_models(filepath):
         for bar, val in zip(bars, vals):
             ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + max(vals) * 0.02,
                     f"{val:.3f}", ha="center", va="bottom", fontsize=8, color="#e0e0e0")
-        # highlight best bar
         best_idx = vals.index(max(vals) if higher_better else min(vals))
         bars[best_idx].set_edgecolor("#ffffff")
         bars[best_idx].set_linewidth(2)
