@@ -24,6 +24,11 @@
                     <p class="lead">
                         Use a CSV or Excel file to generate a simple prediction chart.
                     </p>
+                    {% if error %}
+                    <div style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 1rem; border-radius: 6px; margin-top: 1rem; text-align: left;">
+                        <strong>Error:</strong> {{ error }}
+                    </div>
+                    {% endif %}
                 </header>
 
                 <form class="upload-form" method="POST" enctype="multipart/form-data">
@@ -70,14 +75,11 @@
                                     <li class="custom-select__option selected" role="option" data-value="Linear Regression" data-type="Supervised">
                                         <span class="option-icon">📈</span> Linear Regression
                                     </li>
-                                    <li class="custom-select__option" role="option" data-value="Decision Tree" data-type="Supervised">
-                                        <span class="option-icon">🌿</span> Decision Tree Regressor
+                                    <li class="custom-select__option" role="option" data-value="Multiple Regression" data-type="Supervised">
+                                        <span class="option-icon">📊</span> Multiple Regression
                                     </li>
-                                    <li class="custom-select__option" role="option" data-value="Random Forest" data-type="Supervised">
-                                        <span class="option-icon">🌲</span> Random Forest Regressor
-                                    </li>
-                                    <li class="custom-select__option" role="option" data-value="XGBoost" data-type="Supervised">
-                                        <span class="option-icon">⚡</span> XGBoost Regressor
+                                    <li class="custom-select__option" role="option" data-value="Polynomial" data-type="Supervised">
+                                        <span class="option-icon">📉</span> Polynomial Regression
                                     </li>
                                     <li class="custom-select__option" role="option" data-value="K-Means" data-type="Unsupervised" style="display: none;">
                                         <span class="option-icon">💠</span> K-Means Clustering

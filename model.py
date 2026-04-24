@@ -24,10 +24,18 @@ def run_model(filepath, model_type="Linear Regression", start_date=None, end_dat
     # Feature selection logic
     features = ["Days"]
     if model_type == "Multiple Regression":
-        features = ["Days", "MA_20", "MA_50"]
+        features = ["Days"]
+        if data["MA_20"].notna().sum() >= 2:
+            features.append("MA_20")
+        if data["MA_50"].notna().sum() >= 2:
+            features.append("MA_50")
+        
         data_filtered = data.dropna(subset=features)
-        if len(data_filtered) < 2:
-            raise ValueError("Not enough data points for Multiple Regression after calculating indicators.")
+        if len(features) == 1 or len(data_filtered) < 2:
+            # Fall back to just Days if we don't even have MA_20 data
+            features = ["Days"]
+            data_filtered = data.dropna(subset=features)
+            
         X, y = data_filtered[features], data_filtered["Close"]
         plot_dates = data_filtered["Date"]
     else:
